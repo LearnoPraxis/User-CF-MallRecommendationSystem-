@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.mapper.ForumPostMapper">
+
+    <!-- 分页查询帖子 -->
+    <select id="selectPostPage" resultType="com.mall.entity.ForumPost">
+        SELECT p.*, u.nickname as user_name, u.avatar as user_avatar,
+               (SELECT COUNT(*) FROM forum_comment c WHERE c.post_id = p.id) as comment_count
+        FROM forum_post p
+        LEFT JOIN sys_user u ON p.user_id = u.id
+        <where>
+            <if test="type != null">
+                AND p.type = #{type}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'hot'">
+                ORDER BY p.view_count DESC, p.create_time DESC
+            </when>
+            <when test="sortBy == 'comment'">
+                ORDER BY comment_count DESC, p.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY p.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 查询帖子详情 -->
+    <select id="selectPostDetail" resultType="com.mall.entity.ForumPost">
+        SELECT p.*, u.nickname as user_name, u.avatar as user_avatar
+        FROM forum_post p
+        LEFT JOIN sys_user u ON p.user_id = u.id
+        WHERE p.id = #{id}
+    </select>
+
+    <!-- 分页查询帖子（管理端-完整筛选） -->
+    <select id="selectPostPageAdmin" resultType="com.mall.entity.ForumPost">
+        SELECT p.*, u.nickname as user_name, u.avatar as user_avatar
+        FROM forum_post p
+        LEFT JOIN sys_user u ON p.user_id = u.id
+        <where>
+            <if test="type != null">
+                AND p.type = #{type}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+            <if test="userName != null and userName != ''">
+                AND u.nickname LIKE CONCAT('%', #{userName}, '%')
+            </if>
+        </where>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <!-- 分页查询用户自己的帖子 -->
+    <select id="selectMyPostPage" resultType="com.mall.entity.ForumPost">
+        SELECT p.*, u.nickname as user_name, u.avatar as user_avatar,
+               (SELECT COUNT(*) FROM forum_comment c WHERE c.post_id = p.id) as comment_count
+        FROM forum_post p
+        LEFT JOIN sys_user u ON p.user_id = u.id
+        <where>
+            p.user_id = #{userId}
+            <if test="type != null">
+                AND p.type = #{type}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY p.create_time DESC
+    </select>
+
+</mapper>

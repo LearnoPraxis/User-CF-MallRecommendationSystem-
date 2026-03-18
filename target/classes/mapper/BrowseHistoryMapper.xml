@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.mapper.BrowseHistoryMapper">
+
+    <!-- 浏览记录结果映射 -->
+    <resultMap id="HistoryWithProductMap" type="com.mall.entity.BrowseHistory">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="browseTime" column="browse_time"/>
+        <result property="duration" column="duration"/>
+        <association property="product" javaType="com.mall.entity.Product">
+            <id property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+            <result property="price" column="p_price"/>
+            <result property="mainImage" column="p_main_image"/>
+            <result property="status" column="p_status"/>
+            <result property="stock" column="p_stock"/>
+            <result property="sales" column="p_sales"/>
+        </association>
+    </resultMap>
+
+    <!-- 分页查询用户浏览记录 -->
+    <select id="selectHistoryPage" resultMap="HistoryWithProductMap">
+        SELECT h.*, 
+               p.id as p_id, p.name as p_name, p.price as p_price, 
+               p.main_image as p_main_image, p.status as p_status,
+               p.stock as p_stock, p.sales as p_sales
+        FROM browse_history h
+        LEFT JOIN product p ON h.product_id = p.id
+        WHERE h.user_id = #{userId}
+        ORDER BY h.browse_time DESC
+    </select>
+
+    <!-- 插入或更新浏览记录（同一天内更新，否则新增） -->
+    <update id="insertOrUpdateBrowse">
+        INSERT INTO browse_history (user_id, product_id, browse_time, duration)
+        VALUES (#{userId}, #{productId}, NOW(), 0)
+    </update>
+
+</mapper>

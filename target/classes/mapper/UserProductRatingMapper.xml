@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.mapper.UserProductRatingMapper">
+
+    <!-- 查询所有评分数据 -->
+    <select id="selectAllRatings" resultType="com.mall.entity.UserProductRating">
+        SELECT * FROM user_product_rating
+    </select>
+
+    <!-- 查询用户的评分数据 -->
+    <select id="selectByUserId" resultType="com.mall.entity.UserProductRating">
+        SELECT * FROM user_product_rating WHERE user_id = #{userId}
+    </select>
+
+    <!-- 查询对某商品有评分的用户 -->
+    <select id="selectByProductId" resultType="com.mall.entity.UserProductRating">
+        SELECT * FROM user_product_rating WHERE product_id = #{productId}
+    </select>
+
+    <!-- 插入或更新用户行为评分（解决并发问题） -->
+    <insert id="insertOrUpdateRating">
+        INSERT INTO user_product_rating (user_id, product_id, rating, browse_score, cart_score, favorite_score, buy_score, comment_score, create_time, update_time)
+        VALUES (#{userId}, #{productId}, #{weight}, 
+                CASE WHEN #{actionType} = 'browse' THEN #{weight} ELSE 0 END,
+                CASE WHEN #{actionType} = 'cart' THEN #{weight} ELSE 0 END,
+                CASE WHEN #{actionType} = 'favorite' THEN #{weight} ELSE 0 END,
+                CASE WHEN #{actionType} = 'buy' THEN #{weight} ELSE 0 END,
+                CASE WHEN #{actionType} = 'comment' THEN #{weight} ELSE 0 END,
+                NOW(), NOW())
+        ON DUPLICATE KEY UPDATE
+            browse_score = CASE WHEN #{actionType} = 'browse' THEN browse_score + #{weight} ELSE browse_score END,
+            cart_score = CASE WHEN #{actionType} = 'cart' THEN cart_score + #{weight} ELSE cart_score END,
+            favorite_score = CASE WHEN #{actionType} = 'favorite' THEN favorite_score + #{weight} ELSE favorite_score END,
+            buy_score = CASE WHEN #{actionType} = 'buy' THEN buy_score + #{weight} ELSE buy_score END,
+            comment_score = CASE WHEN #{actionType} = 'comment' THEN comment_score + #{weight} ELSE comment_score END,
+            rating = LEAST(5, browse_score + cart_score + favorite_score + buy_score + comment_score),
+            update_time = NOW()
+    </insert>
+
+</mapper>
