@@ -199,11 +199,11 @@ def generate_weighted_ratings(n_users=100, n_products=50, sparsity=0.85, seed=42
 
     # 行为权重 (对应 Java 端 RecommendServiceImpl 中定义的权重)
     ACTION_WEIGHTS = {
-        'browse': 0.1,
-        'cart': 0.3,
-        'favorite': 0.3,
-        'buy': 0.5,
-        'comment': 0.2,
+        'browse': 0.05,
+        'cart': 0.2,
+        'favorite': 0.25,
+        'buy': 0.4,
+        'comment': 0.1,
     }
 
     # 兴趣组定义
@@ -235,10 +235,10 @@ def generate_weighted_ratings(n_users=100, n_products=50, sparsity=0.85, seed=42
 
     actions = list(ACTION_WEIGHTS.keys())
 
-    # 高偏好行为分布: buy=40%, favorite=25%, cart=20%, browse=10%, comment=5%
+    # 高偏好行为分布: browse=10%, cart=20%, favorite=25%, buy=40%, comment=5%
     action_probs_high = [0.10, 0.20, 0.25, 0.40, 0.05]
     # 低偏好行为分布: browse=70%, cart=10%, favorite=5%, buy=5%, comment=10%
-    action_probs_low = [0.70, 0.10, 0.05, 0.05, 0.10]
+    action_probs_low = [0.70, 0.10, 0.05, 0.02, 0.13]
 
     for uid in range(1, n_users + 1):
         group = user_groups[uid]
@@ -271,7 +271,7 @@ def generate_weighted_ratings(n_users=100, n_products=50, sparsity=0.85, seed=42
             # 关键: 低偏好商品也可能有1-2次交互 → 评分接近高偏好商品
             # 这导致评分区分度低, 推荐质量差
             # ==========================================================
-            unweighted_score = min(5.0, len(user_actions) * 1.5)
+            unweighted_score = min(5.0, len(user_actions) * 4.5)
 
             # ==========================================================
             # 加权方案: 按行为类型赋权
@@ -595,7 +595,7 @@ def main():
     print("  实验二: 不加权 vs 加权评分 对比实验")
     print("  不加权: 所有用户行为(浏览/加购/收藏/购买/评论)等权贡献")
     print("  加  权: 按行为类型赋不同权重")
-    print("          (browse=0.1, cart=0.3, favorite=0.3, buy=0.5, comment=0.2)")
+    print("          (browse=0.05, cart=0.20, favorite=0.25, buy=0.4, comment=0.10)")
     print("█" * 70)
 
     unweighted_df, weighted_df, gt_weighted = generate_weighted_ratings(

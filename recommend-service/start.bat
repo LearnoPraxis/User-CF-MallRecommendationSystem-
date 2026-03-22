@@ -28,5 +28,6 @@ REM 启动服务
 echo.
 echo 启动推荐服务...
 python app.py
+"""python test_recommendation.py"""
 
 pause

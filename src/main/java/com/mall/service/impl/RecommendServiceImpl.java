@@ -62,11 +62,11 @@ public class RecommendServiceImpl implements RecommendService {
     private RestTemplate restTemplate = new RestTemplate();
 
     // 用户行为权重
-    private static final BigDecimal BROWSE_WEIGHT = new BigDecimal("0.1");
-    private static final BigDecimal CART_WEIGHT = new BigDecimal("0.3");
-    private static final BigDecimal FAVORITE_WEIGHT = new BigDecimal("0.3");
-    private static final BigDecimal BUY_WEIGHT = new BigDecimal("0.5");
-    private static final BigDecimal COMMENT_WEIGHT = new BigDecimal("0.2");
+    private static final BigDecimal BROWSE_WEIGHT = new BigDecimal("0.05");
+    private static final BigDecimal CART_WEIGHT = new BigDecimal("0.20");
+    private static final BigDecimal FAVORITE_WEIGHT = new BigDecimal("0.25");
+    private static final BigDecimal BUY_WEIGHT = new BigDecimal("0.4");
+    private static final BigDecimal COMMENT_WEIGHT = new BigDecimal("0.1");
 
     // 缓存Key前缀
     private static final String RECOMMEND_CACHE_PREFIX = "recommend:user:";
