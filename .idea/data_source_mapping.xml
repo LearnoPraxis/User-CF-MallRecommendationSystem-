@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/sql/data.sql" value="77616a97-d13e-4468-99a3-c666542c1080" />
+    <file url="file://$PROJECT_DIR$/sql/fix_duplicate_data.sql" value="77616a97-d13e-4468-99a3-c666542c1080" />
+    <file url="file://$PROJECT_DIR$/sql/mall_recommendation.sql" value="77616a97-d13e-4468-99a3-c666542c1080" />
+  </component>
+</project>

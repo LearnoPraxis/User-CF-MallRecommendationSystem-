@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.mapper.ProductCommentMapper">
+
+    <!-- 分页查询商品留言 -->
+    <select id="selectCommentPage" resultType="com.mall.entity.ProductComment">
+        SELECT c.*, u.nickname as user_name, u.avatar as user_avatar,
+               ru.nickname as reply_user_name
+        FROM product_comment c
+        LEFT JOIN sys_user u ON c.user_id = u.id
+        LEFT JOIN sys_user ru ON c.reply_user_id = ru.id
+        WHERE c.product_id = #{productId} AND c.status = 1
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 分页查询所有留言（管理端） -->
+    <select id="selectAllCommentPage" resultType="com.mall.entity.ProductComment">
+        SELECT c.*, u.nickname as user_name, u.avatar as user_avatar,
+               p.name as product_name, ru.nickname as reply_user_name
+        FROM product_comment c
+        LEFT JOIN sys_user u ON c.user_id = u.id
+        LEFT JOIN product p ON c.product_id = p.id
+        LEFT JOIN sys_user ru ON c.reply_user_id = ru.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (c.content LIKE CONCAT('%', #{keyword}, '%') OR p.name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 分页查询所有留言（管理端-完整筛选） -->
+    <select id="selectAllCommentPageAdmin" resultType="com.mall.entity.ProductComment">
+        SELECT c.*, u.nickname as user_name, u.avatar as user_avatar,
+               p.name as product_name, p.main_image as product_image,
+               ru.nickname as reply_user_name
+        FROM product_comment c
+        LEFT JOIN sys_user u ON c.user_id = u.id
+        LEFT JOIN product p ON c.product_id = p.id
+        LEFT JOIN sys_user ru ON c.reply_user_id = ru.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (c.content LIKE CONCAT('%', #{keyword}, '%') 
+                     OR p.name LIKE CONCAT('%', #{keyword}, '%')
+                     OR u.nickname LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="productId != null">
+                AND c.product_id = #{productId}
+            </if>
+            <if test="rating != null">
+                AND c.rating = #{rating}
+            </if>
+            <if test="hasReply != null and hasReply == 1">
+                AND c.reply_content IS NOT NULL AND c.reply_content != ''
+            </if>
+            <if test="hasReply != null and hasReply == 0">
+                AND (c.reply_content IS NULL OR c.reply_content = '')
+            </if>
+            <if test="status != null">
+                AND c.status = #{status}
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+</mapper>

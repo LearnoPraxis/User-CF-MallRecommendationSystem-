@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.mapper.CartMapper">
+
+    <!-- 购物车结果映射 -->
+    <resultMap id="CartWithProductMap" type="com.mall.entity.Cart">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="selected" column="selected"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <association property="product" javaType="com.mall.entity.Product">
+            <id property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+            <result property="price" column="p_price"/>
+            <result property="stock" column="p_stock"/>
+            <result property="mainImage" column="p_main_image"/>
+            <result property="status" column="p_status"/>
+        </association>
+    </resultMap>
+
+    <!-- 管理端购物车结果映射（含用户信息） -->
+    <resultMap id="CartAdminMap" type="com.mall.entity.Cart">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="quantity" column="quantity"/>
+        <result property="selected" column="selected"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="userName" column="user_name"/>
+        <association property="product" javaType="com.mall.entity.Product">
+            <id property="id" column="p_id"/>
+            <result property="name" column="p_name"/>
+            <result property="price" column="p_price"/>
+            <result property="originalPrice" column="p_original_price"/>
+            <result property="stock" column="p_stock"/>
+            <result property="mainImage" column="p_main_image"/>
+            <result property="status" column="p_status"/>
+        </association>
+    </resultMap>
+
+    <!-- 查询用户购物车（带商品信息） -->
+    <select id="selectCartWithProduct" resultMap="CartWithProductMap">
+        SELECT c.*, 
+               p.id as p_id, p.name as p_name, p.price as p_price, 
+               p.stock as p_stock, p.main_image as p_main_image, p.status as p_status
+        FROM cart c
+        LEFT JOIN product p ON c.product_id = p.id
+        WHERE c.user_id = #{userId}
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 查询用户选中的购物车项 -->
+    <select id="selectSelectedCarts" resultMap="CartWithProductMap">
+        SELECT c.*, 
+               p.id as p_id, p.name as p_name, p.price as p_price, 
+               p.stock as p_stock, p.main_image as p_main_image, p.status as p_status
+        FROM cart c
+        LEFT JOIN product p ON c.product_id = p.id
+        WHERE c.user_id = #{userId} AND c.selected = 1
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 管理端分页查询购物车（带用户和商品信息） -->
+    <select id="selectCartPageAdmin" resultMap="CartAdminMap">
+        SELECT c.*,
+               u.username as user_name,
+               p.id as p_id, p.name as p_name, p.price as p_price, p.original_price as p_original_price,
+               p.stock as p_stock, p.main_image as p_main_image, p.status as p_status
+        FROM cart c
+        LEFT JOIN sys_user u ON c.user_id = u.id
+        LEFT JOIN product p ON c.product_id = p.id
+        <where>
+            <if test="userId != null">
+                AND c.user_id = #{userId}
+            </if>
+            <if test="userName != null and userName != ''">
+                AND u.username LIKE CONCAT('%', #{userName}, '%')
+            </if>
+            <if test="productName != null and productName != ''">
+                AND p.name LIKE CONCAT('%', #{productName}, '%')
+            </if>
+        </where>
+        ORDER BY c.create_time DESC
+    </select>
+
+    <!-- 插入或更新购物车（解决并发问题） -->
+    <insert id="insertOrUpdate">
+        INSERT INTO cart (user_id, product_id, quantity, selected, create_time, update_time)
+        VALUES (#{userId}, #{productId}, #{quantity}, 1, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE 
+            quantity = quantity + #{quantity},
+            update_time = NOW()
+    </insert>
+
+</mapper>

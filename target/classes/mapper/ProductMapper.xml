@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mall.mapper.ProductMapper">
+
+    <!-- 分页查询商品（带分类名称） -->
+    <select id="selectProductPage" resultType="com.mall.entity.Product">
+        SELECT p.*, c.name as category_name, u.nickname as user_name
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.id
+        LEFT JOIN sys_user u ON p.user_id = u.id
+        <where>
+            <if test="categoryId != null">
+                AND p.category_id = #{categoryId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.name LIKE CONCAT('%', #{keyword}, '%') OR p.description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+            <if test="minPrice != null">
+                AND p.price &gt;= #{minPrice}
+            </if>
+            <if test="maxPrice != null">
+                AND p.price &lt;= #{maxPrice}
+            </if>
+        </where>
+        <choose>
+            <when test="sortBy == 'sales'">
+                ORDER BY p.sales DESC
+            </when>
+            <when test="sortBy == 'price_asc'">
+                ORDER BY p.price ASC
+            </when>
+            <when test="sortBy == 'price_desc'">
+                ORDER BY p.price DESC
+            </when>
+            <when test="sortBy == 'new'">
+                ORDER BY p.create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY p.sales DESC, p.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据ID列表查询商品 -->
+    <select id="selectByIds" resultType="com.mall.entity.Product">
+        SELECT p.*, c.name as category_name
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.id
+        WHERE p.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- 查询热门商品（按销量排序） -->
+    <select id="selectHotProducts" resultType="com.mall.entity.Product">
+        SELECT p.*, c.name as category_name
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.id
+        WHERE p.status = 1
+        ORDER BY p.sales DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询最新商品 -->
+    <select id="selectNewProducts" resultType="com.mall.entity.Product">
+        SELECT p.*, c.name as category_name
+        FROM product p
+        LEFT JOIN product_category c ON p.category_id = c.id
+        WHERE p.status = 1
+        ORDER BY p.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 批量更新商品状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE product SET status = #{status}, update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>
